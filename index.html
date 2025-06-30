@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PeakPixel - Modern Minecraft Network</title>
+<style>
+  :root {
+    --color-primary: #3f51b5;
+    --color-primary-hover: #5c6bc0;
+    --color-dark-bg: #121217;
+    --color-dark-text: #eee;
+    --color-light-bg: #f9f9f9;
+    --color-light-text: #222;
+    --transition-speed: 0.3s;
+  }
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--color-dark-bg);
+    color: var(--color-dark-text);
+    transition: background var(--transition-speed), color var(--transition-speed);
+  }
+  body.light {
+    background: var(--color-light-bg);
+    color: var(--color-light-text);
+  }
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition-speed);
+  }
+  a:hover,
+  a:focus {
+    color: var(--color-primary-hover);
+  }
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #333;
+    background: var(--color-dark-bg);
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    transition: background var(--transition-speed), border-color var(--transition-speed);
+  }
+  body.light header {
+    background: var(--color-light-bg);
+    border-color: #ccc;
+  }
+  .logo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    user-select: none;
+  }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+  }
+  nav li {
+    position: relative;
+    cursor: pointer;
+  }
+  nav li a,
+  nav li span {
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    display: inline-block;
+  }
+  nav li a:hover,
+  nav li span:hover,
+  nav li a:focus,
+  nav li span:focus {
+    background: var(--color-primary);
+    color: white;
+    border-radius: 6px;
+    outline: none;
+  }
+  /* Gamemodes dropdown */
+  .dropdown {
+    position: relative;
+  }
+  .dropdown-content {
+    position: absolute;
+    top: 130%;
+    left: 0;
+    background: var(--color-dark-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 15px rgb(0 0 0 / 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-15px);
+    transition: opacity var(--transition-speed), transform var(--transition-speed);
+    min-width: 140px;
+  }
+  body.light .dropdown-content {
+    background: var(--color-light-bg);
+    box-shadow: 0 8px 15px rgb(0 0 0 / 0.15);
+  }
+  .dropdown-content.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .dropdown-content a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: var(--color-dark-text);
+    font-weight: 500;
+    transition: background var(--transition-speed), color var(--transition-speed);
+  }
+  body:not(.light) .dropdown-content a {
+    color: var(--color-dark-text);
+  }
+  .dropdown-content a:hover,
+  .dropdown-content a:focus {
+    background: var(--color-primary);
+    color: white;
+  }
+  /* Theme toggle */
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--transition-speed);
+  }
+  .theme-toggle:hover,
+  .theme-toggle:focus {
+    background: var(--color-primary-hover);
+    outline: none;
+  }
+  .theme-toggle svg {
+    fill: white;
+    width: 20px;
+    height: 20px;
+  }
+  /* Hero Section */
+  .hero {
+    padding: 6rem 2rem 4rem;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 900;
+  }
+  .hero p {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    font-weight: 500;
+    color: var(--color-primary-hover);
+  }
+  .btn {
+    background: var(--color-primary);
+    color: white;
+    padding: 0.85rem 2rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    user-select: none;
+    box-shadow: 0 6px 12px rgb(63 81 181 / 0.5);
+    transition: background var(--transition-speed), box-shadow var(--transition-speed);
+  }
+  .btn:hover,
+  .btn:focus {
+    background: var(--color-primary-hover);
+    box-shadow: 0 8px 18px rgb(63 81 181 / 0.7);
+    outline: none;
+  }
+  /* Gamemodes Section */
+  #gamemodes {
+    max-width: 960px;
+    margin: 2rem auto 4rem;
+    padding: 0 1rem;
+  }
+  #gamemodes h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .cards {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .card {
+    background: var(--color-dark-bg);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
+    cursor: default;
+    transition: background var(--transition-speed), box-shadow var(--transition-speed);
+    user-select: none;
+  }
+  .card:hover,
+  .card:focus {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 8px 20px rgb(63 81 181 / 0.7);
+    outline: none;
+  }
+  body.light .card {
+    background: var(--color-light-bg);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+    color: var(--color-light-text);
+  }
+  body.light .card:hover,
+  body.light .card:focus {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 8px 20px rgb(63 81 181 / 0.7);
+    outline: none;
+  }
+  .card h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 1.5rem 0;
+    background: var(--color-dark-bg);
+    color: var(--color-primary);
+    font-weight: 700;
+    user-select: none;
+  }
+  body.light footer {
+    background: var(--color-light-bg);
+    color: var(--color-primary);
+  }
+  /* Login Modal */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-speed);
+    z-index: 99999;
+  }
+  .modal.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-content {
+    background: var(--color-dark-bg);
+    padding: 2rem 2.5rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 380px;
+    color: var(--color-dark-text);
+    box-shadow: 0 0 20px var(--color-primary);
+    position: relative;
+    transform: translateY(-30px);
+    animation: slideDown 0.35s ease forwards;
+  }
+  body.light .modal-content {
+    background: var(--color-light-bg);
+    color: var(--color-light-text);
+    box-shadow: 0 0 20px var(--color-primary);
+  }
+  @keyframes slideDown {
+    to {
+      transform: translateY(0);
+    }
+  }
+  .modal-close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition-speed);
+  }
+  .modal-close:hover,
+  .modal-close:focus {
+    color: var(--color-primary-hover);
+    outline: none;
+  }
+  form {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  label {
+    font-weight: 600;
+    user-select: none;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    transition: background var(--transition-speed), color var(--transition-speed);
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus {
+    background: #222b55;
+    color: white;
+    box-shadow: 0 0 5px var(--color-primary);
+  }
+  body.light input[type="text"],
+  body.light input[type="email"],
+  body.light input[type="password"] {
+    background: #eee;
+    color: #222;
+  }
+  body.light input[type="text"]:focus,
+  body.light input[type="email"]:focus,
+  body.light input[type="password"]:focus {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 0 5px var(--color-primary);
+  }
+  button[type="submit"] {
+    background: var(--color-primary);
+    border: none;
+    color: white;
+    padding: 0.7rem 0;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background var(--transition-speed);
+    user-select: none;
+  }
+  button[type="submit"]:hover,
+  button[type="submit"]:focus {
+    background: var(--color-primary-hover);
+    outline: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" tabindex="0">PeakPixel</div>
+  <nav>
+    <ul>
+      <li><a href="#home" tabindex="0">Home</a></li>
+      <li class="dropdown" tabindex="0" aria-haspopup="true" aria-expanded="false" id="gamemode-menu">
+        <span>Gamemodes ▾</span>
+        <div class="dropdown-content" id="gamemode-dropdown" role="menu" aria-labelledby="gamemode-menu">
+          <a href="#" role="menuitem" tabindex="-1">Duels</a>
+          <a href="#" role="menuitem" tabindex="-1">BedWars</a>
+          <a href="#" role="menuitem" tabindex="-1">SkyWars</a>
+          <a href="#" role="menuitem" tabindex="-1">Skyblock</a>
+          <a href="#" role="menuitem" tabindex="-1">KitPvP</a>
+          <a href="#" role="menuitem" tabindex="-1">Creative</a>
+          <a href="#" role="menuitem" tabindex="-1">Lifesteal</a>
+        </div>
+      </li>
+      <li><a href="https://discord.gg/QyXXRRkU" target="_blank" rel="noopener" tabindex="0">Discord</a></li>
+      <li><a href="#" id="login-btn" tabindex="0">Login</a></li>
+    </ul>
+  </nav>
+  <button class="theme-toggle" aria-label="Toggle light/dark theme" tabindex="0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" >
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </button>
+</header>
+
+<section class="hero" id="home">
+  <h1>Welcome to PeakPixel</h1>
+  <p>Your all-version Minecraft Network</p>
+  <a href="https://discord.gg/QyXXRRkU" target="_blank" rel="noopener" class="btn">Join our Discord</a>
+</section>
+
+<section id="gamemodes">
+  <h2>Game Modes</h2>
+  <div class="cards" role="list">
+    <div class="card" tabindex="0"><h3>Duels</h3><p>Competitive 1v1 battles with custom kits.</p></div>
+    <div class="card" tabindex="0"><h3>BedWars</h3><p>Protect your bed and destroy the enemies'.</p></div>
+    <div class="card" tabindex="0"><h3>SkyWars</h3><p>Fight on floating islands in the sky.</p></div>
+    <div class="card" tabindex="0"><h3>Skyblock</h3><p>Build and survive on your private island.</p></div>
+    <div class="card" tabindex="0"><h3>KitPvP</h3><p>Fast paced player versus player battles.</p></div>
+    <div class="card" tabindex="0"><h3>Creative</h3><p>Unleash your creativity with unlimited blocks.</p></div>
+    <div class="card" tabindex="0"><h3>Lifesteal</h3><p>Steal life from your opponents to survive.</p></div>
+  </div>
+</section>
+
+<footer>
+  &copy; 2025 PeakPixel — All rights reserved.
+</footer>
+
+<!-- Login Modal -->
+<div class="modal" id="login-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="login-title">
+  <div class="modal-content">
+    <button class="modal-close" aria-label="Close login form" id="modal-close">&times;</button>
+    <h2 id="login-title">Login to PeakPixel</h2>
+    <form id="login-form">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" required />
+      
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" autocomplete="email" required />
+      
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required />
+      
+      <button type="submit">Login</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Dark / Light mode toggle
+  const body = document.body;
+  const toggleBtn = document.querySelector('.theme-toggle');
+  const gamemodeMenu = document.getElementById('gamemode-menu');
+  const gamemodeDropdown = document.getElementById('gamemode-dropdown');
+  const loginBtn = document.getElementById('login-btn');
+  const loginModal = document.getElementById('login-modal');
+  const modalClose = document.getElementById('modal-close');
+
+  // Load theme from localStorage
+  if(localStorage.getItem('theme') === 'light') {
+    body.classList.add('light');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    body.classList.toggle('light');
+    if(body.classList.contains('light')) {
+      localStorage.setItem('theme', 'light');
+    } else {
+      localStorage.removeItem('theme');
+    }
+  });
+
+  // Gamemode dropdown toggle
+  gamemodeMenu.addEventListener('click', () => {
+    const isOpen = gamemodeDropdown.classList.toggle('open');
+    gamemodeMenu.setAttribute('aria-expanded', isOpen);
+  });
+
+  // Login modal open
+  loginBtn.addEventListener('click', e => {
+    e.preventDefault();
+    loginModal.classList.add('open');
+    loginModal.setAttribute('aria-hidden', 'false');
+  });
+
+  // Login modal close
+  modalClose.addEventListener('click', () => {
+    loginModal.classList.remove('open');
+    loginModal.setAttribute('aria-hidden', 'true');
+  });
+  loginModal.addEventListener('click', e => {
+    if(e.target === loginModal) {
+      loginModal.classList.remove('open');
+      loginModal.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  // Login form submit (just frontend demo, no backend)
+  const loginForm = document.getElementById('login-form');
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    alert('Login submitted! (This is a demo - no backend)');
+    loginForm.reset();
+    loginModal.classList.remove('open');
+    loginModal.setAttribute('aria-hidden', 'true');
+  });
+</script>
+
+</body>
+</html>
